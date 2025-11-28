@@ -1,44 +1,22 @@
 # Fortran Examples for libcint
 
-This directory contains all Fortran examples and interfaces for libcint.
-
-## Directory Structure
-
-```
-fortran/
-├── README.md                           (this file)
-│
-├── Interface Modules
-│   ├── libcint_interface.f90          Low-level C binding (iso_c_binding)
-│   └── libcint_fortran.f90            High-level Fortran API (pure Fortran types)
-│
-├── Old-Style Examples (using external)
-│   ├── fortran_call_cartesian.F90     Cartesian basis
-│   ├── fortran_call_spheric.F90       Spherical harmonics
-│   └── fortran_call_spinor.F90        Spinor (relativistic)
-│
-├── Modern Examples (using iso_c_binding)
-│   ├── fortran_modern_cartesian.F90   Type-safe Cartesian example
-│   ├── fortran_modern_spheric.F90     Type-safe Spherical example
-│   └── fortran_modern_spinor.F90      Type-safe Spinor example
-│
-├── Pure Fortran Example (high-level API)
-│   └── fortran_pure_example.F90       C-agnostic Fortran code
-│
-├── Benchmarks
-│   └── fortran_time_c2h6.F90          Ethane benchmark with OpenMP
-│
-└── Documentation
-    ├── README_MODERN_FORTRAN.md       Guide to modern Fortran interface
-    ├── README_FORTRAN_LAYERS.md       Detailed comparison of API layers
-    └── README_CLEAN_FORTRAN_API.md    Quick start for pure Fortran API
-```
+This directory contains Fortran examples demonstrating how to use libcint from Fortran code.
 
 ## Quick Start
 
-### For New Projects (Recommended)
+libcint provides **two Fortran interface modules** (located in `include/`, compiled with the library):
 
-Use the **high-level Fortran API** for clean, C-agnostic code:
+1. **`libcint_interface`** - Low-level C binding using `iso_c_binding`
+   - Use when you need maximum control and don't mind C types
+   - Types: `integer(c_int)`, `real(c_double)`, `complex(c_double_complex)`
+
+2. **`libcint_fortran`** - High-level pure Fortran API
+   - **Recommended for most users** - clean, native Fortran code
+   - Types: `integer(ip)`, `real(dp)` (identical performance to low-level!)
+
+Both interfaces have **identical performance** to each other (zero overhead).
+
+## Example: High-Level API (Recommended)
 
 ```fortran
 program my_app
@@ -46,17 +24,22 @@ program my_app
     implicit none
 
     integer(ip) :: atm(LIBCINT_ATM_SLOTS, natm)
+    integer(ip) :: bas(LIBCINT_BAS_SLOTS, nbas)
     real(dp) :: env(10000)
+    real(dp), allocatable :: buf(:,:)
+    integer(ip) :: shls(2), ret
 
-    ! Your quantum chemistry code here
+    ! Setup system (atoms, basis sets, etc.)
+    ! ...
+
+    ! Compute overlap integral
+    ret = libcint_1e_ovlp_sph(buf, shls, atm, natm, bas, nbas, env)
 end program
 ```
 
-See: `fortran_pure_example.F90` and `README_CLEAN_FORTRAN_API.md`
+See: `fortran_pure_example.F90`
 
-### For Maximum Control
-
-Use the **low-level C binding** for direct access to libcint:
+## Example: Low-Level API
 
 ```fortran
 program my_app
@@ -65,92 +48,78 @@ program my_app
     implicit none
 
     integer(c_int) :: atm(ATM_SLOTS, natm)
+    integer(c_int) :: bas(BAS_SLOTS, nbas)
     real(c_double) :: env(10000)
 
-    ! Direct C interop
+    ! Direct C interop with explicit types
+    ret = cint1e_ovlp_sph(buf, shls, atm, natm, bas, nbas, env)
 end program
 ```
 
-See: `fortran_modern_spheric.F90` and `README_MODERN_FORTRAN.md`
-
-### For Legacy Code
-
-The old-style examples using `external` are still available but not recommended for new code:
-
-```fortran
-program my_app
-    external :: cint1e_ovlp_sph
-    ! Old-style interface
-end program
-```
-
-See: `fortran_call_spheric.F90`
+See: `fortran_modern_spheric.F90`, `fortran_modern_cartesian.F90`
 
 ## Building
 
-All examples are built automatically from the parent directory:
+The Fortran modules are compiled automatically when building libcint with `WITH_FORTRAN=ON` (default):
 
 ```bash
-cd ../build
+mkdir build && cd build
+cmake ..
 make
 
 # Run examples
-./examples/pure_fortran_f         # Pure Fortran API example
-./examples/modern_spheric_f       # Modern iso_c_binding example
-./examples/time_c2h6_f            # Fortran benchmark
+./examples/pure_fortran_f         # High-level API
+./examples/modern_spheric_f       # Low-level API
+./examples/time_c2h6_f            # Benchmark with OpenMP
 ```
 
-## Three Interface Levels
+The compiled module files (`.mod`) will be in `build/include/` and are installed with libcint.
 
-### 1. Old-Style (external keyword)
-- **Files**: `fortran_call_*.F90`
-- **Status**: Legacy, not recommended
-- **Pros**: Simple, no special syntax
-- **Cons**: No type safety, error-prone
+## Available Examples
 
-### 2. Modern Low-Level (iso_c_binding)
-- **Files**: `libcint_interface.f90`, `fortran_modern_*.F90`
-- **Status**: Stable, recommended for library developers
-- **Pros**: Type-safe, explicit C interop
-- **Cons**: Requires C types in your code
+| Example | API Level | Description |
+|---------|-----------|-------------|
+| `fortran_pure_example.F90` | High-level | **Start here!** Clean Fortran code |
+| `fortran_modern_cartesian.F90` | Low-level | Cartesian basis integrals |
+| `fortran_modern_spheric.F90` | Low-level | Spherical harmonic integrals |
+| `fortran_modern_spinor.F90` | Low-level | Relativistic spinor integrals |
+| `fortran_time_c2h6.F90` | Low-level | Performance benchmark with OpenMP |
+| `fortran_call_*.F90` | Legacy | Old-style (not recommended) |
 
-### 3. High-Level (Pure Fortran API)
-- **Files**: `libcint_fortran.f90`, `fortran_pure_example.F90`
-- **Status**: Recommended for applications
-- **Pros**: Clean Fortran code, zero overhead
-- **Cons**: None!
+## Using in Your Application
 
-## Performance
+After installing libcint, simply use the modules:
 
-All modern interfaces (levels 2 and 3) have **identical performance**:
-- Zero overhead for type conversions
-- No data copying
-- Same compiled code
+```fortran
+! CMakeLists.txt or build script needs:
+! - Link to libcint: target_link_libraries(myapp cint)
+! - Include module directory for .mod files
 
-See the benchmark (`fortran_time_c2h6.F90`) for performance testing.
+program myapp
+    use libcint_fortran  ! High-level (recommended)
+    ! or
+    use libcint_interface  ! Low-level
 
-## API Documentation
+    ! Your code here
+end program
+```
 
-- **README_CLEAN_FORTRAN_API.md** - Start here for pure Fortran
-- **README_MODERN_FORTRAN.md** - Detailed guide to iso_c_binding interface
-- **README_FORTRAN_LAYERS.md** - Complete comparison of all approaches
+## Which API Should I Use?
 
-## Examples by Use Case
+- **New projects**: Use `libcint_fortran` (high-level) - cleaner code, same performance
+- **Need control**: Use `libcint_interface` (low-level) - explicit C interop
+- **Both**: You can mix them in the same program
 
-| Use Case | Example File | API Level |
-|----------|--------------|-----------|
-| Learn libcint basics | `fortran_pure_example.F90` | High-level |
-| Production code | `fortran_pure_example.F90` | High-level |
-| Library development | `fortran_modern_spheric.F90` | Low-level |
-| Performance testing | `fortran_time_c2h6.F90` | Low-level |
-| Legacy compatibility | `fortran_call_spheric.F90` | Old-style |
-| Cartesian basis | `fortran_modern_cartesian.F90` | Low-level |
-| Spherical harmonics | `fortran_modern_spheric.F90` | Low-level |
-| Relativistic (spinor) | `fortran_modern_spinor.F90` | Low-level |
+## More Information
 
-## Getting Help
+For detailed technical information, architecture diagrams, and advanced usage, see:
+- **`Fortran_details.md`** - Complete technical documentation
+- **libcint documentation**: https://github.com/sunqm/libcint
 
-For issues or questions about the Fortran interfaces:
-1. Check the documentation files in this directory
-2. Look at the example files for similar use cases
-3. Refer to the main libcint documentation: https://github.com/sunqm/libcint
+## Important Notes
+
+️ **0-based indexing**: libcint uses 0-based indexing for atom and shell indices (Fortran arrays are still 1-based)
+
+ **Array offsets**: Pointer offsets in `atm` and `bas` arrays are 0-based for C compatibility
+
+See the examples and `Fortran_details.md` for more information.

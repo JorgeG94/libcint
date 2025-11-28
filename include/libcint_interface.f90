@@ -2,9 +2,6 @@
 ! Fortran interface module for libcint using iso_c_binding
 ! This module provides type-safe interfaces to libcint C functions
 !
-! Author: Generated for modern Fortran applications
-! License: Same as libcint
-!
 
 module libcint_interface
     use iso_c_binding
@@ -15,29 +12,29 @@ module libcint_interface
     ! ========================================================================
 
     ! Slots of atm array
-    integer, parameter :: CHARGE_OF  = 1
-    integer, parameter :: PTR_COORD  = 2
-    integer, parameter :: NUC_MOD_OF = 3
-    integer, parameter :: PTR_ZETA   = 4
-    integer, parameter :: ATM_SLOTS  = 6
+    integer(c_int), parameter :: CHARGE_OF  = 1
+    integer(c_int), parameter :: PTR_COORD  = 2
+    integer(c_int), parameter :: NUC_MOD_OF = 3
+    integer(c_int), parameter :: PTR_ZETA   = 4
+    integer(c_int), parameter :: ATM_SLOTS  = 6
 
     ! Slots of bas array
-    integer, parameter :: ATOM_OF    = 1
-    integer, parameter :: ANG_OF     = 2
-    integer, parameter :: NPRIM_OF   = 3
-    integer, parameter :: NCTR_OF    = 4
-    integer, parameter :: KAPPA_OF   = 5
-    integer, parameter :: PTR_EXP    = 6
-    integer, parameter :: PTR_COEFF  = 7
-    integer, parameter :: BAS_SLOTS  = 8
+    integer(c_int), parameter :: ATOM_OF    = 1
+    integer(c_int), parameter :: ANG_OF     = 2
+    integer(c_int), parameter :: NPRIM_OF   = 3
+    integer(c_int), parameter :: NCTR_OF    = 4
+    integer(c_int), parameter :: KAPPA_OF   = 5
+    integer(c_int), parameter :: PTR_EXP    = 6
+    integer(c_int), parameter :: PTR_COEFF  = 7
+    integer(c_int), parameter :: BAS_SLOTS  = 8
 
     ! Global parameters in env
-    integer, parameter :: PTR_EXPCUTOFF    = 0
-    integer, parameter :: PTR_COMMON_ORIG  = 1
-    integer, parameter :: PTR_RINV_ORIG    = 4
-    integer, parameter :: PTR_RINV_ZETA    = 7
-    integer, parameter :: PTR_RANGE_OMEGA  = 8
-    integer, parameter :: PTR_ENV_START    = 20
+    integer(c_int), parameter :: PTR_EXPCUTOFF    = 0
+    integer(c_int), parameter :: PTR_COMMON_ORIG  = 1
+    integer(c_int), parameter :: PTR_RINV_ORIG    = 4
+    integer(c_int), parameter :: PTR_RINV_ZETA    = 7
+    integer(c_int), parameter :: PTR_RANGE_OMEGA  = 8
+    integer(c_int), parameter :: PTR_ENV_START    = 20
 
     ! ========================================================================
     ! Interface to C functions

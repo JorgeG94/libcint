@@ -135,6 +135,7 @@ endif()
 option(WITH_FORTRAN "Fortran interface" on)
 if(WITH_FORTRAN)
   add_definitions(-DWITH_FORTRAN)
+  enable_language(Fortran)
   message("Enable Fortran interface")
 else()
   message("Exclude Fortran interface")
@@ -187,14 +188,42 @@ if(QUADMATH_FOUND)
 endif()
 target_link_libraries(cint "-lm")
 
+# Fortran interface modules
+if(WITH_FORTRAN)
+  add_library(cint_fortran OBJECT
+    ${PROJECT_SOURCE_DIR}/include/libcint_interface.f90
+    ${PROJECT_SOURCE_DIR}/include/libcint_fortran.f90)
+  target_link_libraries(cint_fortran PUBLIC cint)
+  set_target_properties(cint_fortran PROPERTIES
+    Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
+  target_include_directories(cint_fortran PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+endif()
+
 
 
 install(TARGETS cint COMPONENT "lib")
 install(FILES ${CintHeaders} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT "dev")
 
+if(WITH_FORTRAN)
+  # Install Fortran source files
+  install(FILES
+    ${PROJECT_SOURCE_DIR}/include/libcint_interface.f90
+    ${PROJECT_SOURCE_DIR}/include/libcint_fortran.f90
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT "dev")
+  # Install Fortran module files (.mod)
+  install(DIRECTORY ${PROJECT_BINARY_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    COMPONENT "dev"
+    FILES_MATCHING PATTERN "*.mod")
+endif()
+
 
 if(ENABLE_EXAMPLE)
-  enable_language(Fortran)
+  if(NOT WITH_FORTRAN)
+    enable_language(Fortran)
+  endif()
   find_package(OpenMP)
   if(OPENMP_FOUND)
     set(HAVE_OPENMP 1)

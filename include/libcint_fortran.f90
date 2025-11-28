@@ -4,7 +4,7 @@
 ! while internally using the C-compatible libcint_interface module
 !
 ! Key insight: real(dp) and real(c_double) are the SAME type (both real64),
-! so no actual conversion/copying occurs - just cleaner names!
+! so no actual conversion/copying or casting
 !
 module libcint_fortran
     use iso_c_binding, only: c_int, c_double, c_double_complex, c_ptr, c_null_ptr
@@ -14,11 +14,16 @@ module libcint_fortran
 
     ! Public type parameters - use these in your Fortran code
     ! These are guaranteed to be compatible with C types (same binary representation)
-    integer, parameter, public :: dp = real64  ! Double precision (same as c_double)
-    integer, parameter, public :: ip = int32   ! Integer (same as c_int)
-    integer, parameter, public :: zp = real64  ! Complex double precision
+
+    ! BIG ATTENTION: IF YOU COMPILE WITH DEFAULT INTEGER KIND != 4 (int32),
+    ! YOU MUST CHANGE ip TO MATCH THE DEFAULT INTEGER KIND OF YOUR COMPILER
+    ! OR ELSE THINGS WILL GO VERY WRONG!!!
+    integer, parameter, public :: dp = real64  !! Double precision (same as c_double)
+    integer, parameter, public :: ip = int32   !! Integer (same as c_int)
+    integer, parameter, public :: zp = real64  !! Complex double precision
 
     ! Re-export all constants with cleaner names
+    ! if you're new to fortran, just remember Fortran is not case-sensitive
     integer(ip), parameter, public :: LIBCINT_ATM_SLOTS = ATM_SLOTS
     integer(ip), parameter, public :: LIBCINT_BAS_SLOTS = BAS_SLOTS
     integer(ip), parameter, public :: LIBCINT_CHARGE_OF = CHARGE_OF
@@ -46,7 +51,6 @@ contains
         integer(ip), intent(in) :: bas_id
         integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
         integer(ip) :: dim
-        ! Direct pass-through - types are compatible
         dim = CINTcgto_cart(bas_id, bas)
     end function libcint_cgto_cart
 
