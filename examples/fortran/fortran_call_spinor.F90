@@ -26,8 +26,8 @@ integer,parameter :: BAS_SLOTS  = 8
 
 integer,parameter :: PTR_ENV_START = 20
 
-integer :: natm = 2
-integer :: nbas = 4
+integer, parameter :: natm = 2
+integer, parameter :: nbas = 4
 integer,allocatable :: atm(:,:)
 integer,allocatable :: bas(:,:)
 double precision,allocatable :: env(:)

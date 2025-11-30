@@ -9,8 +9,8 @@ program pure_fortran_example
     implicit none
 
     ! Use native Fortran types - dp and ip are defined in libcint_fortran
-    integer :: natm = 2
-    integer :: nbas = 4
+    integer, parameter :: natm = 2
+    integer, parameter :: nbas = 4
     integer(ip), allocatable :: atm(:,:)
     integer(ip), allocatable :: bas(:,:)
     real(dp), allocatable :: env(:)

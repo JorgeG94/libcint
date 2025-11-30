@@ -11,8 +11,8 @@ program modern_cartesian
     implicit none
 
     ! Variables
-    integer :: natm = 2
-    integer :: nbas = 4
+    integer, parameter :: natm = 2
+    integer, parameter :: nbas = 4
     integer(c_int), allocatable :: atm(:,:)
     integer(c_int), allocatable :: bas(:,:)
     real(c_double), allocatable :: env(:)
