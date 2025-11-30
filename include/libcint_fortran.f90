@@ -4,11 +4,6 @@
 ! This module provides a pure Fortran API using standard Fortran types (dp, ip)
 ! while internally delegating to the C-compatible libcint_interface module.
 !
-! Key design: dp/ip/zp are bound directly to iso_c_binding kinds (c_double,
-! c_int, c_double_complex). Compile-time assertions ensure these match the
-! iso_fortran_env kinds, so all real(dp), integer(ip), and complex(zp) arrays
-! can be passed to the C interface without any copying or conversion.
-!
 module libcint_fortran
     use iso_c_binding, only: c_int, c_double, c_double_complex, c_ptr, c_null_ptr
     use iso_fortran_env, only: real64, int32
@@ -71,8 +66,6 @@ module libcint_fortran
     ! Constants (re-export with LIBCINT_ prefix)
     ! ========================================================================
 
-    ! Note: Using c_int kind to match the underlying constants, even though
-    ! ip = int32 = c_int. This maintains consistency with the low-level interface.
     integer(c_int), parameter :: LIBCINT_ATM_SLOTS = ATM_SLOTS
     integer(c_int), parameter :: LIBCINT_BAS_SLOTS = BAS_SLOTS
     integer(c_int), parameter :: LIBCINT_CHARGE_OF = CHARGE_OF
@@ -94,15 +87,6 @@ module libcint_fortran
     integer(c_int), parameter :: LIBCINT_PTR_ENV_START = PTR_ENV_START
 
 contains
-
-    ! ========================================================================
-    ! Implementation note:
-    ! These are thin wrappers around libcint_interface functions. Since
-    ! real(dp) and real(c_double) are binary-identical (both are real64),
-    ! and integer(ip) and integer(c_int) are binary-identical (both are int32),
-    ! arrays can be passed directly with zero copying or conversion overhead.
-    ! The compiler treats them as the same type.
-    ! ========================================================================
 
     ! ========================================================================
     ! Dimension inquiry functions
