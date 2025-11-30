@@ -30,6 +30,7 @@ add_executable(modern_spheric_f   fortran/fortran_modern_spheric.F90)
 add_executable(modern_spinor_f    fortran/fortran_modern_spinor.F90)
 
 add_executable(pure_fortran_f fortran/fortran_pure_example.F90)
+add_executable(structured_pure_f fortran/fortran_structured_demo.F90)
 
 add_executable(time_c2h6_f fortran/fortran_time_c2h6.F90)
 add_executable(time_c2h6_pure_f fortran/fortran_time_c2h6_pure.F90)
@@ -42,6 +43,7 @@ target_link_libraries(modern_cartesian_f cint_fortran cint m)
 target_link_libraries(modern_spheric_f   cint_fortran cint m)
 target_link_libraries(modern_spinor_f    cint_fortran cint m)
 target_link_libraries(pure_fortran_f     cint_fortran cint m)
+target_link_libraries(structured_pure_f  cint_fortran cint m)
 target_link_libraries(time_c2h6_f        cint_fortran cint m)
 target_link_libraries(time_c2h6_pure_f   cint_fortran cint m)
 
@@ -50,6 +52,7 @@ target_include_directories(modern_cartesian_f PRIVATE ${PROJECT_BINARY_DIR}/incl
 target_include_directories(modern_spheric_f   PRIVATE ${PROJECT_BINARY_DIR}/include)
 target_include_directories(modern_spinor_f    PRIVATE ${PROJECT_BINARY_DIR}/include)
 target_include_directories(pure_fortran_f     PRIVATE ${PROJECT_BINARY_DIR}/include)
+target_include_directories(structured_pure_f  PRIVATE ${PROJECT_BINARY_DIR}/include)
 target_include_directories(time_c2h6_f        PRIVATE ${PROJECT_BINARY_DIR}/include)
 target_include_directories(time_c2h6_pure_f   PRIVATE ${PROJECT_BINARY_DIR}/include)
 

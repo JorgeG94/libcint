@@ -68,6 +68,7 @@ make
 
 # Run examples
 ./examples/pure_fortran_f         # High-level API
+./examples/structured_pure_f      # Derived-type wrapper demo
 ./examples/modern_spheric_f       # Low-level API
 ./examples/time_c2h6_f            # Benchmark with OpenMP
 ./examples/time_c2h6_pure_f       # Benchmark with OpenMP using high-level API
@@ -85,6 +86,7 @@ The compiled module files (`.mod`) will be in `build/include/` and are installed
 | `fortran_modern_spinor.F90` | Low-level | Relativistic spinor integrals |
 | `fortran_time_c2h6.F90` | Low-level | Performance benchmark with OpenMP |
 | `fortran_time_c2h6_pure.F90` | High-level | Performance benchmark with OpenMP using high-level API |
+| `fortran_structured_demo.F90` | High-level | Derived-type wrapper demo (H2, STO-3G) |
 | `fortran_call_*.F90` | Legacy | Old-style |
 
 ## Using in Your Application
