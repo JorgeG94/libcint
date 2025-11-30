@@ -4,9 +4,10 @@
 ! This module provides a pure Fortran API using standard Fortran types (dp, ip)
 ! while internally delegating to the C-compatible libcint_interface module.
 !
-! Key design: real(dp) is real64 which has identical binary layout to c_double,
-! and integer(ip) is int32 which is identical to c_int. Therefore, no data
-! conversion or copying occurs - arrays are passed directly to C with zero overhead.
+! Key design: dp/ip/zp are bound directly to iso_c_binding kinds (c_double,
+! c_int, c_double_complex). Compile-time assertions ensure these match the
+! iso_fortran_env kinds, so all real(dp), integer(ip), and complex(zp) arrays
+! can be passed to the C interface without any copying or conversion.
 !
 module libcint_fortran
     use iso_c_binding, only: c_int, c_double, c_double_complex, c_ptr, c_null_ptr
@@ -20,7 +21,7 @@ module libcint_fortran
     ! ========================================================================
 
     ! Type parameters for user code
-    public :: dp, ip
+    public :: dp, ip, zp
 
     ! Constants (re-export from libcint_interface with LIBCINT_ prefix)
     public :: LIBCINT_ATM_SLOTS, LIBCINT_BAS_SLOTS
@@ -40,24 +41,31 @@ module libcint_fortran
     public :: libcint_1e_ipovlp_cart
     public :: libcint_1e_ovlp_sph, libcint_1e_kin_sph, libcint_1e_nuc_sph
     public :: libcint_1e_ipovlp_sph
+    public :: libcint_1e_spnucsp
 
     ! Two-electron integrals
     public :: libcint_2e_cart, libcint_2e_sph
     public :: libcint_2e_ip1_cart, libcint_2e_ip1_sph
+    public :: libcint_2e_spsp1
 
     ! Optimizers
     public :: libcint_2e_cart_optimizer, libcint_2e_sph_optimizer
     public :: libcint_2e_ip1_cart_optimizer, libcint_2e_ip1_sph_optimizer
     public :: libcint_del_optimizer
+    public :: libcint_2e_spsp1_optimizer
 
     ! ========================================================================
     ! Type parameters
     ! ========================================================================
 
-    ! Use standard Fortran environment kinds for portability
-    ! These are binary-compatible with C types (real64 == c_double, int32 == c_int)
-    integer, parameter :: dp = real64  ! Double precision (same as c_double)
-    integer, parameter :: ip = int32   ! Integer (same as c_int)
+    ! Bind directly to ISO C kinds to guarantee binary compatibility
+    integer, parameter :: dp = c_double            ! Double precision
+    integer, parameter :: ip = c_int               ! Integer
+    integer, parameter :: zp = c_double_complex    ! Double complex
+
+    ! Optional asserts: fail to compile if real64/int32 are not C-compatible
+    integer, parameter :: libcint_real64_is_c_double = 1 / merge(1, 0, real64 == c_double)
+    integer, parameter :: libcint_int32_is_c_int     = 1 / merge(1, 0, int32  == c_int)
 
     ! ========================================================================
     ! Constants (re-export with LIBCINT_ prefix)
@@ -265,6 +273,23 @@ contains
     end function libcint_1e_ipovlp_sph
 
     ! ========================================================================
+    ! One-electron integrals - Spinor
+    ! ========================================================================
+
+    !> Spinor nuclear attraction integral (complex spinor basis)
+    subroutine libcint_1e_spnucsp(buf, shls, atm, natm, bas, nbas, env)
+        complex(zp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(2)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+
+        call cint1e_spnucsp(buf, shls, atm, natm, bas, nbas, env)
+    end subroutine libcint_1e_spnucsp
+
+    ! ========================================================================
     ! Two-electron integrals - Cartesian
     ! ========================================================================
 
@@ -353,6 +378,29 @@ contains
     end function libcint_2e_ip1_sph
 
     ! ========================================================================
+    ! Two-electron integrals - Spinor
+    ! ========================================================================
+
+    !> Spinor electron repulsion integral
+    !> Optional optimizer argument for better performance
+    subroutine libcint_2e_spsp1(buf, shls, atm, natm, bas, nbas, env, opt)
+        complex(zp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(4)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        type(c_ptr), intent(in), optional :: opt
+
+        if (present(opt)) then
+            call cint2e_spsp1(buf, shls, atm, natm, bas, nbas, env, opt)
+        else
+            call cint2e_spsp1(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
+        end if
+    end subroutine libcint_2e_spsp1
+
+    ! ========================================================================
     ! Optimizer creation and deletion
     ! ========================================================================
 
@@ -403,6 +451,18 @@ contains
 
         call cint2e_ip1_sph_optimizer(opt, atm, natm, bas, nbas, env)
     end subroutine libcint_2e_ip1_sph_optimizer
+
+    !> Create optimizer for spinor 2e integrals
+    subroutine libcint_2e_spsp1_optimizer(opt, atm, natm, bas, nbas, env)
+        type(c_ptr), intent(out) :: opt
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+
+        call cint2e_spsp1_optimizer(opt, atm, natm, bas, nbas, env)
+    end subroutine libcint_2e_spsp1_optimizer
 
     !> Delete/free an optimizer and nullify the pointer
     subroutine libcint_del_optimizer(opt)

@@ -11,13 +11,13 @@ program fortran_time_c2h6
     use omp_lib
     implicit none
 
-    integer, parameter :: natm = 8
-    integer, parameter :: nbas_max = natm * 20
+    integer(c_int), parameter :: natm = 8_c_int
+    integer(c_int), parameter :: nbas_max = natm * 20_c_int
     integer(c_int), allocatable :: atm(:,:)
     integer(c_int), allocatable :: bas(:,:)
     real(c_double), allocatable :: env(:)
-    integer :: nbas
-    integer :: i, j, n, ia, off
+    integer(c_int) :: nbas
+    integer(c_int) :: i, j, n, ia, off
 
     ! Allocate arrays
     allocate(atm(ATM_SLOTS, natm))
@@ -99,22 +99,22 @@ contains
     ! ========================================================================
     subroutine run_all(atm, natm, bas, nbas, env)
         integer(c_int), intent(in) :: atm(:,:)
-        integer, intent(in) :: natm
+        integer(c_int), intent(in) :: natm
         integer(c_int), intent(in) :: bas(:,:)
-        integer, intent(in) :: nbas
+        integer(c_int), intent(in) :: nbas
         real(c_double), intent(in) :: env(:)
 
-        integer :: i, j, k, l, ij, kl
-        integer :: di, dj, dk, dl
-        integer :: kl_max
+        integer(c_int) :: i, j, k, l, ij, kl
+        integer(c_int) :: di, dj, dk, dl
+        integer(c_int) :: kl_max
         integer(c_int) :: shls(4)
         real(c_double), allocatable :: buf(:)
-        integer, allocatable :: ishls(:), jshls(:)
-        integer :: ncgto, npgto
-        integer :: pct, count
+        integer(c_int), allocatable :: ishls(:), jshls(:)
+        integer(c_int) :: ncgto, npgto
+        integer(c_int) :: pct, count
         real(8) :: time0, time1, tt, tot
         type(c_ptr) :: opt_for_cint2e, opt_for_ip1
-        integer :: ret  ! Return value from integral functions
+        integer(c_int) :: ret  ! Return value from integral functions
 
         ! Set up shell pair lists
         allocate(ishls(nbas*(nbas+1)/2))
@@ -310,10 +310,10 @@ contains
     subroutine setup_6_31g_basis(bas, env, nbas, off)
         integer(c_int), intent(inout) :: bas(:,:)
         real(c_double), intent(inout) :: env(:)
-        integer, intent(out) :: nbas
-        integer, intent(inout) :: off
+        integer(c_int), intent(out) :: nbas
+        integer(c_int), intent(inout) :: off
 
-        integer :: i, j, ia, n
+        integer(c_int) :: i, j, ia, n
 
         ! Carbon 6-31G exponents and coefficients
         env(off+ 1) = 3047.5249_c_double; env(off+ 7) = 0.0018347_c_double * CINTgto_norm(0, env(off+1))
@@ -385,10 +385,10 @@ contains
     subroutine setup_6_311gss_basis(bas, env, nbas, off)
         integer(c_int), intent(inout) :: bas(:,:)
         real(c_double), intent(inout) :: env(:)
-        integer, intent(out) :: nbas
-        integer, intent(inout) :: off
+        integer(c_int), intent(out) :: nbas
+        integer(c_int), intent(inout) :: off
 
-        integer :: i, j, ia, n
+        integer(c_int) :: i, j, ia, n
 
         ! Carbon 6-311G**
         env(off+ 1) = 4563.240_c_double; env(off+18) = 0.0019666_c_double * CINTgto_norm(0, env(off+ 1))
@@ -485,10 +485,10 @@ contains
     subroutine setup_cc_pvdz_basis(bas, env, nbas, off)
         integer(c_int), intent(inout) :: bas(:,:)
         real(c_double), intent(inout) :: env(:)
-        integer, intent(out) :: nbas
-        integer, intent(inout) :: off
+        integer(c_int), intent(out) :: nbas
+        integer(c_int), intent(inout) :: off
 
-        integer :: i, j, ia, n
+        integer(c_int) :: i, j, ia, n
 
         ! Carbon cc-pVDZ
         env(off+ 1) = 6665.0_c_double; env(off+ 9) = 0.000692_c_double * CINTgto_norm(0, env(off+ 1))
@@ -573,10 +573,10 @@ contains
     subroutine setup_cc_pvtz_basis(bas, env, nbas, off)
         integer(c_int), intent(inout) :: bas(:,:)
         real(c_double), intent(inout) :: env(:)
-        integer, intent(out) :: nbas
-        integer, intent(inout) :: off
+        integer(c_int), intent(out) :: nbas
+        integer(c_int), intent(inout) :: off
 
-        integer :: i, j, ia, n
+        integer(c_int) :: i, j, ia, n
 
         ! Carbon cc-pVTZ
         env(off+ 1) = 8236.0_c_double; env(off+19) = 0.000531_c_double * CINTgto_norm(0, env(off+ 1))
@@ -696,10 +696,10 @@ contains
     subroutine setup_cc_pvqz_basis(bas, env, nbas, off)
         integer(c_int), intent(inout) :: bas(:,:)
         real(c_double), intent(inout) :: env(:)
-        integer, intent(out) :: nbas
-        integer, intent(inout) :: off
+        integer(c_int), intent(out) :: nbas
+        integer(c_int), intent(inout) :: off
 
-        integer :: i, j, ia, n
+        integer(c_int) :: i, j, ia, n
 
         ! Carbon cc-pVQZ
         env(off+ 1) = 33980.0_c_double; env(off+25) = 0.000091_c_double * CINTgto_norm(0, env(off+ 1))
