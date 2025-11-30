@@ -168,6 +168,7 @@ set(CintHeaders
 
 
 add_library(cint ${cintSrc})
+add_library(libcint::libcint ALIAS cint)
 
 target_include_directories(cint
   PUBLIC 
@@ -281,3 +282,28 @@ endif()
 set(CPACK_COMPONENTS_GROUPING "IGNORE")
 
 include(CPack)
+
+install(TARGETS cint
+  EXPORT libcintTargets
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT lib)
+
+install(EXPORT libcintTargets
+  NAMESPACE libcint::
+  FILE libcintTargets.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libcint)
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/libcintConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/cmake/libcintConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libcint)
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/cmake/libcintConfigVersion.cmake
+  VERSION ${cint_VERSION}
+  COMPATIBILITY SameMajorVersion)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/cmake/libcintConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/cmake/libcintConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libcint
+  COMPONENT dev)
