@@ -191,9 +191,10 @@ target_link_libraries(cint "-lm")
 
 # Fortran interface modules
 if(WITH_FORTRAN)
-  add_library(cint_fortran OBJECT
+  add_library(cint_fortran STATIC
     ${PROJECT_SOURCE_DIR}/include/libcint_interface.f90
     ${PROJECT_SOURCE_DIR}/include/libcint_fortran.f90)
+  add_library(libcint::cint_fortran ALIAS cint_fortran)
   target_link_libraries(cint_fortran PUBLIC cint)
   set_target_properties(cint_fortran PROPERTIES
     Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
@@ -204,7 +205,7 @@ endif()
 
 
 
-install(TARGETS cint COMPONENT "lib")
+# legacy install removed? replaced later
 install(FILES ${CintHeaders} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT "dev")
 
 if(WITH_FORTRAN)
@@ -289,6 +290,13 @@ install(TARGETS cint
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT lib)
 
+if(WITH_FORTRAN)
+  install(TARGETS cint_fortran
+    EXPORT libcintTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+endif()
+
 install(EXPORT libcintTargets
   NAMESPACE libcint::
   FILE libcintTargets.cmake
@@ -307,3 +315,7 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/cmake/libcintConfigVersion.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libcint
   COMPONENT dev)
+
+export(EXPORT libcintTargets
+  NAMESPACE libcint::
+  FILE ${CMAKE_CURRENT_BINARY_DIR}/cmake/libcintTargets.cmake)
