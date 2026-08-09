@@ -33,6 +33,7 @@ module libcint_interface
 
     ! Two-electron integrals
     public :: cint2e_cart, cint2e_sph
+    public :: cint3c2e_sph, cint2c2e_sph
     public :: cint2e_ip1_cart, cint2e_ip1_sph
     public :: cint2e_spsp1
 
@@ -356,6 +357,39 @@ module libcint_interface
             type(c_ptr), value, intent(in) :: opt
             integer(c_int) :: cint2e_sph
         end function cint2e_sph
+
+        ! Three-centre two-electron integrals (Spherical), for density fitting.
+        ! shls has four entries even though only three centres contribute: the
+        ! fourth names a dummy s shell with a zero exponent, which is how
+        ! libcint spells "no fourth centre".
+        function cint3c2e_sph(buf, shls, atm, natm, bas, nbas, env, opt) &
+                bind(C, name='cint3c2e_sph')
+            import :: c_double, c_int, c_ptr
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            type(c_ptr), value, intent(in) :: opt
+            integer(c_int) :: cint3c2e_sph
+        end function cint3c2e_sph
+
+        ! Two-centre two-electron integrals (Spherical): the fitting metric.
+        function cint2c2e_sph(buf, shls, atm, natm, bas, nbas, env, opt) &
+                bind(C, name='cint2c2e_sph')
+            import :: c_double, c_int, c_ptr
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            type(c_ptr), value, intent(in) :: opt
+            integer(c_int) :: cint2c2e_sph
+        end function cint2c2e_sph
 
         ! Create optimizer for 2e integrals (Spherical)
         subroutine cint2e_sph_optimizer(opt, atm, natm, bas, nbas, env) &

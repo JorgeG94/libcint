@@ -40,6 +40,7 @@ module libcint_fortran
 
     ! Two-electron integrals
     public :: libcint_2e_cart, libcint_2e_sph
+    public :: libcint_3c2e_sph, libcint_2c2e_sph
     public :: libcint_2e_ip1_cart, libcint_2e_ip1_sph
     public :: libcint_2e_spsp1
 
@@ -340,6 +341,49 @@ contains
             ret = cint2e_sph(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
         end if
     end function libcint_2e_sph
+
+    !> Three-centre ERI (Spherical basis), the (mu nu | P) of density fitting
+    !>
+    !> shls has four entries though only three centres contribute: the fourth
+    !> must name a dummy s shell with a zero exponent, which is how libcint
+    !> spells "no fourth centre". The orbital and auxiliary shells have to live
+    !> in one bas array, since all four indices address the same table.
+    function libcint_3c2e_sph(buf, shls, atm, natm, bas, nbas, env, opt) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(4)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        type(c_ptr), intent(in), optional :: opt
+        integer(ip) :: ret
+
+        if (present(opt)) then
+            ret = cint3c2e_sph(buf, shls, atm, natm, bas, nbas, env, opt)
+        else
+            ret = cint3c2e_sph(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
+        end if
+    end function libcint_3c2e_sph
+
+    !> Two-centre ERI (Spherical basis), the (P|Q) fitting metric
+    function libcint_2c2e_sph(buf, shls, atm, natm, bas, nbas, env, opt) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(2)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        type(c_ptr), intent(in), optional :: opt
+        integer(ip) :: ret
+
+        if (present(opt)) then
+            ret = cint2c2e_sph(buf, shls, atm, natm, bas, nbas, env, opt)
+        else
+            ret = cint2c2e_sph(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
+        end if
+    end function libcint_2c2e_sph
 
     !> ERI gradient (Spherical basis)
     !> Optional optimizer argument for better performance
