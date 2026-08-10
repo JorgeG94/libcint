@@ -23,7 +23,7 @@ module libcint_interface
 
     ! Dimension and normalization functions
     public :: CINTcgto_cart, CINTcgto_spheric, CINTcgto_spinor
-    public :: CINTtot_cgto_spheric, CINTtot_pgto_spheric
+    public :: CINTtot_cgto_spheric, CINTtot_cgto_cart, CINTtot_pgto_spheric
     public :: CINTgto_norm
 
     ! One-electron integrals
@@ -34,6 +34,7 @@ module libcint_interface
     ! Two-electron integrals
     public :: cint2e_cart, cint2e_sph
     public :: cint3c2e_sph, cint2c2e_sph
+    public :: cint3c2e_cart, cint2c2e_cart
     public :: cint2e_ip1_cart, cint2e_ip1_sph
     public :: cint2e_spsp1
 
@@ -125,6 +126,14 @@ module libcint_interface
             integer(c_int), value, intent(in) :: nbas
             integer(c_int) :: CINTtot_cgto_spheric
         end function CINTtot_cgto_spheric
+
+        ! Total contracted Cartesian functions across all shells.
+        function CINTtot_cgto_cart(bas, nbas) bind(C, name='CINTtot_cgto_cart')
+            import :: c_int
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            integer(c_int) :: CINTtot_cgto_cart
+        end function CINTtot_cgto_cart
 
         ! Total number of primitive spherical GTOs
         function CINTtot_pgto_spheric(bas, nbas) bind(C, name='CINTtot_pgto_spheric')
@@ -390,6 +399,38 @@ module libcint_interface
             type(c_ptr), value, intent(in) :: opt
             integer(c_int) :: cint2c2e_sph
         end function cint2c2e_sph
+
+        ! Three-centre two-electron integrals (Cartesian), for density
+        ! fitting in a Cartesian basis. Same dummy-fourth-shell convention as
+        ! the spherical form above.
+        function cint3c2e_cart(buf, shls, atm, natm, bas, nbas, env, opt) &
+                bind(C, name='cint3c2e_cart')
+            import :: c_double, c_int, c_ptr
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            type(c_ptr), value, intent(in) :: opt
+            integer(c_int) :: cint3c2e_cart
+        end function cint3c2e_cart
+
+        ! Two-centre two-electron integrals (Cartesian): the fitting metric.
+        function cint2c2e_cart(buf, shls, atm, natm, bas, nbas, env, opt) &
+                bind(C, name='cint2c2e_cart')
+            import :: c_double, c_int, c_ptr
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            type(c_ptr), value, intent(in) :: opt
+            integer(c_int) :: cint2c2e_cart
+        end function cint2c2e_cart
 
         ! Create optimizer for 2e integrals (Spherical)
         subroutine cint2e_sph_optimizer(opt, atm, natm, bas, nbas, env) &

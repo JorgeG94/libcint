@@ -28,7 +28,7 @@ module libcint_fortran
 
     ! Dimension and normalization functions
     public :: libcint_cgto_cart, libcint_cgto_sph, libcint_cgto_spinor
-    public :: libcint_tot_cgto_sph, libcint_tot_pgto_sph
+    public :: libcint_tot_cgto_sph, libcint_tot_cgto_cart, libcint_tot_pgto_sph
     public :: libcint_gto_norm
 
     ! One-electron integrals
@@ -41,6 +41,7 @@ module libcint_fortran
     ! Two-electron integrals
     public :: libcint_2e_cart, libcint_2e_sph
     public :: libcint_3c2e_sph, libcint_2c2e_sph
+    public :: libcint_3c2e_cart, libcint_2c2e_cart
     public :: libcint_2e_ip1_cart, libcint_2e_ip1_sph
     public :: libcint_2e_spsp1
 
@@ -124,6 +125,13 @@ contains
         integer(ip) :: ntot
         ntot = CINTtot_cgto_spheric(bas, nbas)
     end function libcint_tot_cgto_sph
+
+    function libcint_tot_cgto_cart(bas, nbas) result(ntot)
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        integer(ip) :: ntot
+        ntot = CINTtot_cgto_cart(bas, nbas)
+    end function libcint_tot_cgto_cart
 
     !> Total number of primitive spherical GTOs
     function libcint_tot_pgto_sph(bas, nbas) result(ntot)
@@ -366,6 +374,24 @@ contains
         end if
     end function libcint_3c2e_sph
 
+    function libcint_3c2e_cart(buf, shls, atm, natm, bas, nbas, env, opt) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(4)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        type(c_ptr), intent(in), optional :: opt
+        integer(ip) :: ret
+
+        if (present(opt)) then
+            ret = cint3c2e_cart(buf, shls, atm, natm, bas, nbas, env, opt)
+        else
+            ret = cint3c2e_cart(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
+        end if
+    end function libcint_3c2e_cart
+
     !> Two-centre ERI (Spherical basis), the (P|Q) fitting metric
     function libcint_2c2e_sph(buf, shls, atm, natm, bas, nbas, env, opt) result(ret)
         real(dp), intent(out) :: buf(*)
@@ -384,6 +410,24 @@ contains
             ret = cint2c2e_sph(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
         end if
     end function libcint_2c2e_sph
+
+    function libcint_2c2e_cart(buf, shls, atm, natm, bas, nbas, env, opt) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(2)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        type(c_ptr), intent(in), optional :: opt
+        integer(ip) :: ret
+
+        if (present(opt)) then
+            ret = cint2c2e_cart(buf, shls, atm, natm, bas, nbas, env, opt)
+        else
+            ret = cint2c2e_cart(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
+        end if
+    end function libcint_2c2e_cart
 
     !> ERI gradient (Spherical basis)
     !> Optional optimizer argument for better performance
