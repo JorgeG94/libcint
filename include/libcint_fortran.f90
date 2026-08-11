@@ -47,6 +47,8 @@ module libcint_fortran
 
     ! Optimizers
     public :: libcint_2e_cart_optimizer, libcint_2e_sph_optimizer
+    public :: libcint_3c2e_cart_optimizer, libcint_3c2e_sph_optimizer
+    public :: libcint_2c2e_cart_optimizer, libcint_2c2e_sph_optimizer
     public :: libcint_2e_ip1_cart_optimizer, libcint_2e_ip1_sph_optimizer
     public :: libcint_del_optimizer
     public :: libcint_2e_spsp1_optimizer
@@ -499,6 +501,55 @@ contains
 
         call cint2e_sph_optimizer(opt, atm, natm, bas, nbas, env)
     end subroutine libcint_2e_sph_optimizer
+
+    !> Create optimizer for three-centre 2e integrals (Cartesian basis)
+    subroutine libcint_3c2e_cart_optimizer(opt, atm, natm, bas, nbas, env)
+        type(c_ptr), intent(out) :: opt
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+
+        call cint3c2e_cart_optimizer(opt, atm, natm, bas, nbas, env)
+    end subroutine libcint_3c2e_cart_optimizer
+
+    !> Create optimizer for three-centre 2e integrals (Spherical basis)
+    subroutine libcint_3c2e_sph_optimizer(opt, atm, natm, bas, nbas, env)
+        type(c_ptr), intent(out) :: opt
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+
+        call cint3c2e_sph_optimizer(opt, atm, natm, bas, nbas, env)
+    end subroutine libcint_3c2e_sph_optimizer
+
+    !> Create optimizer for two-centre 2e integrals (Cartesian basis)
+    subroutine libcint_2c2e_cart_optimizer(opt, atm, natm, bas, nbas, env)
+        type(c_ptr), intent(out) :: opt
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+
+        call cint2c2e_cart_optimizer(opt, atm, natm, bas, nbas, env)
+    end subroutine libcint_2c2e_cart_optimizer
+
+    !> Create optimizer for two-centre 2e integrals (Spherical basis)
+    subroutine libcint_2c2e_sph_optimizer(opt, atm, natm, bas, nbas, env)
+        type(c_ptr), intent(out) :: opt
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+
+        call cint2c2e_sph_optimizer(opt, atm, natm, bas, nbas, env)
+    end subroutine libcint_2c2e_sph_optimizer
+
 
     !> Create optimizer for ERI gradients (Cartesian basis)
     subroutine libcint_2e_ip1_cart_optimizer(opt, atm, natm, bas, nbas, env)

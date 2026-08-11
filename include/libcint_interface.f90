@@ -40,6 +40,8 @@ module libcint_interface
 
     ! Optimizers
     public :: cint2e_cart_optimizer, cint2e_sph_optimizer
+    public :: cint3c2e_cart_optimizer, cint3c2e_sph_optimizer
+    public :: cint2c2e_cart_optimizer, cint2c2e_sph_optimizer
     public :: cint2e_ip1_cart_optimizer, cint2e_ip1_sph_optimizer
     public :: cint2e_spsp1_optimizer
     public :: CINTdel_optimizer
@@ -443,6 +445,54 @@ module libcint_interface
             integer(c_int), value, intent(in) :: nbas
             real(c_double), intent(in) :: env(*)
         end subroutine cint2e_sph_optimizer
+
+        ! Create optimizer for three-centre 2e integrals (Spherical)
+        subroutine cint3c2e_sph_optimizer(opt, atm, natm, bas, nbas, env) &
+                bind(C, name='cint3c2e_sph_optimizer')
+            import :: c_ptr, c_int, c_double
+            type(c_ptr), intent(out) :: opt
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+        end subroutine cint3c2e_sph_optimizer
+
+        ! Create optimizer for three-centre 2e integrals (Cartesian)
+        subroutine cint3c2e_cart_optimizer(opt, atm, natm, bas, nbas, env) &
+                bind(C, name='cint3c2e_cart_optimizer')
+            import :: c_ptr, c_int, c_double
+            type(c_ptr), intent(out) :: opt
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+        end subroutine cint3c2e_cart_optimizer
+
+        ! Create optimizer for two-centre 2e integrals (Spherical)
+        subroutine cint2c2e_sph_optimizer(opt, atm, natm, bas, nbas, env) &
+                bind(C, name='cint2c2e_sph_optimizer')
+            import :: c_ptr, c_int, c_double
+            type(c_ptr), intent(out) :: opt
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+        end subroutine cint2c2e_sph_optimizer
+
+        ! Create optimizer for two-centre 2e integrals (Cartesian)
+        subroutine cint2c2e_cart_optimizer(opt, atm, natm, bas, nbas, env) &
+                bind(C, name='cint2c2e_cart_optimizer')
+            import :: c_ptr, c_int, c_double
+            type(c_ptr), intent(out) :: opt
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+        end subroutine cint2c2e_cart_optimizer
 
         ! ERI gradient (Spherical)
         function cint2e_ip1_sph(buf, shls, atm, natm, bas, nbas, env, opt) &
