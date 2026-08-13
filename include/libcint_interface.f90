@@ -29,6 +29,8 @@ module libcint_interface
     ! One-electron integrals
     public :: cint1e_ovlp_cart, cint1e_nuc_cart, cint1e_kin_cart, cint1e_ipovlp_cart
     public :: cint1e_ovlp_sph, cint1e_nuc_sph, cint1e_kin_sph, cint1e_ipovlp_sph
+    public :: cint1e_ipkin_cart, cint1e_ipnuc_cart, cint1e_iprinv_cart
+    public :: cint1e_ipkin_sph, cint1e_ipnuc_sph, cint1e_iprinv_sph
     public :: cint1e_spnucsp
 
     ! Two-electron integrals
@@ -36,6 +38,9 @@ module libcint_interface
     public :: cint3c2e_sph, cint2c2e_sph
     public :: cint3c2e_cart, cint2c2e_cart
     public :: cint2e_ip1_cart, cint2e_ip1_sph
+    public :: cint3c2e_ip1_cart, cint3c2e_ip1_sph
+    public :: cint3c2e_ip2_cart, cint3c2e_ip2_sph
+    public :: cint2c2e_ip1_cart, cint2c2e_ip1_sph
     public :: cint2e_spsp1
 
     ! Optimizers
@@ -43,6 +48,9 @@ module libcint_interface
     public :: cint3c2e_cart_optimizer, cint3c2e_sph_optimizer
     public :: cint2c2e_cart_optimizer, cint2c2e_sph_optimizer
     public :: cint2e_ip1_cart_optimizer, cint2e_ip1_sph_optimizer
+    public :: cint3c2e_ip1_cart_optimizer, cint3c2e_ip1_sph_optimizer
+    public :: cint3c2e_ip2_cart_optimizer, cint3c2e_ip2_sph_optimizer
+    public :: cint2c2e_ip1_cart_optimizer, cint2c2e_ip1_sph_optimizer
     public :: cint2e_spsp1_optimizer
     public :: CINTdel_optimizer
 
@@ -550,6 +558,266 @@ module libcint_interface
             integer(c_int), value, intent(in) :: nbas
             real(c_double), intent(in) :: env(*)
         end subroutine cint2e_spsp1_optimizer
+
+        ! ====================================================================
+        ! Nuclear-derivative integrals, for analytic gradients
+        !
+        ! Each returns three components per shell pair, the derivative with
+        ! respect to the coordinates of the *first* shell's centre. Translational
+        ! invariance gives the second centre's, which is why libcint generates
+        ! only one of them.
+        !
+        ! iprinv is the exception and the reason gradients need it: it
+        ! differentiates with respect to the origin of the 1/|r-R| operator
+        ! rather than a basis centre, which is the Hellmann-Feynman term. The
+        ! caller sets that origin in env(PTR_RINV_ORIG+1:+3) before calling.
+        ! ====================================================================
+
+        ! Gradient of the kinetic energy integral (Spherical)
+        function cint1e_ipkin_sph(buf, shls, atm, natm, bas, nbas, env) &
+                bind(C, name='cint1e_ipkin_sph')
+            import :: c_double, c_int
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            integer(c_int) :: cint1e_ipkin_sph
+        end function cint1e_ipkin_sph
+
+        ! Gradient of the kinetic energy integral (Cartesian)
+        function cint1e_ipkin_cart(buf, shls, atm, natm, bas, nbas, env) &
+                bind(C, name='cint1e_ipkin_cart')
+            import :: c_double, c_int
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            integer(c_int) :: cint1e_ipkin_cart
+        end function cint1e_ipkin_cart
+
+        ! Gradient of the nuclear attraction integral (Spherical)
+        function cint1e_ipnuc_sph(buf, shls, atm, natm, bas, nbas, env) &
+                bind(C, name='cint1e_ipnuc_sph')
+            import :: c_double, c_int
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            integer(c_int) :: cint1e_ipnuc_sph
+        end function cint1e_ipnuc_sph
+
+        ! Gradient of the nuclear attraction integral (Cartesian)
+        function cint1e_ipnuc_cart(buf, shls, atm, natm, bas, nbas, env) &
+                bind(C, name='cint1e_ipnuc_cart')
+            import :: c_double, c_int
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            integer(c_int) :: cint1e_ipnuc_cart
+        end function cint1e_ipnuc_cart
+
+        ! Gradient of the 1/|r-R| operator integral (Spherical)
+        function cint1e_iprinv_sph(buf, shls, atm, natm, bas, nbas, env) &
+                bind(C, name='cint1e_iprinv_sph')
+            import :: c_double, c_int
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            integer(c_int) :: cint1e_iprinv_sph
+        end function cint1e_iprinv_sph
+
+        ! Gradient of the 1/|r-R| operator integral (Cartesian)
+        function cint1e_iprinv_cart(buf, shls, atm, natm, bas, nbas, env) &
+                bind(C, name='cint1e_iprinv_cart')
+            import :: c_double, c_int
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            integer(c_int) :: cint1e_iprinv_cart
+        end function cint1e_iprinv_cart
+
+        ! Gradient of the three-centre 2e, differentiated on the first index (Spherical)
+        function cint3c2e_ip1_sph(buf, shls, atm, natm, bas, nbas, env, opt) &
+                bind(C, name='cint3c2e_ip1_sph')
+            import :: c_double, c_int, c_ptr
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            type(c_ptr), value, intent(in) :: opt
+            integer(c_int) :: cint3c2e_ip1_sph
+        end function cint3c2e_ip1_sph
+
+        ! Gradient of the three-centre 2e, differentiated on the first index (Cartesian)
+        function cint3c2e_ip1_cart(buf, shls, atm, natm, bas, nbas, env, opt) &
+                bind(C, name='cint3c2e_ip1_cart')
+            import :: c_double, c_int, c_ptr
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            type(c_ptr), value, intent(in) :: opt
+            integer(c_int) :: cint3c2e_ip1_cart
+        end function cint3c2e_ip1_cart
+
+        ! Gradient of the three-centre 2e, differentiated on the auxiliary index (Spherical)
+        function cint3c2e_ip2_sph(buf, shls, atm, natm, bas, nbas, env, opt) &
+                bind(C, name='cint3c2e_ip2_sph')
+            import :: c_double, c_int, c_ptr
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            type(c_ptr), value, intent(in) :: opt
+            integer(c_int) :: cint3c2e_ip2_sph
+        end function cint3c2e_ip2_sph
+
+        ! Gradient of the three-centre 2e, differentiated on the auxiliary index (Cartesian)
+        function cint3c2e_ip2_cart(buf, shls, atm, natm, bas, nbas, env, opt) &
+                bind(C, name='cint3c2e_ip2_cart')
+            import :: c_double, c_int, c_ptr
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            type(c_ptr), value, intent(in) :: opt
+            integer(c_int) :: cint3c2e_ip2_cart
+        end function cint3c2e_ip2_cart
+
+        ! Gradient of the two-centre 2e (the fitting metric), differentiated on the first index (Spherical)
+        function cint2c2e_ip1_sph(buf, shls, atm, natm, bas, nbas, env, opt) &
+                bind(C, name='cint2c2e_ip1_sph')
+            import :: c_double, c_int, c_ptr
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            type(c_ptr), value, intent(in) :: opt
+            integer(c_int) :: cint2c2e_ip1_sph
+        end function cint2c2e_ip1_sph
+
+        ! Gradient of the two-centre 2e (the fitting metric), differentiated on the first index (Cartesian)
+        function cint2c2e_ip1_cart(buf, shls, atm, natm, bas, nbas, env, opt) &
+                bind(C, name='cint2c2e_ip1_cart')
+            import :: c_double, c_int, c_ptr
+            real(c_double), intent(out) :: buf(*)
+            integer(c_int), intent(in) :: shls(*)
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+            type(c_ptr), value, intent(in) :: opt
+            integer(c_int) :: cint2c2e_ip1_cart
+        end function cint2c2e_ip1_cart
+
+        ! Optimizer for the three-centre 2e, differentiated on the first index (Spherical)
+        subroutine cint3c2e_ip1_sph_optimizer(opt, atm, natm, bas, nbas, env) &
+                bind(C, name='cint3c2e_ip1_sph_optimizer')
+            import :: c_ptr, c_int, c_double
+            type(c_ptr), intent(out) :: opt
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+        end subroutine cint3c2e_ip1_sph_optimizer
+
+        ! Optimizer for the three-centre 2e, differentiated on the first index (Cartesian)
+        subroutine cint3c2e_ip1_cart_optimizer(opt, atm, natm, bas, nbas, env) &
+                bind(C, name='cint3c2e_ip1_cart_optimizer')
+            import :: c_ptr, c_int, c_double
+            type(c_ptr), intent(out) :: opt
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+        end subroutine cint3c2e_ip1_cart_optimizer
+
+        ! Optimizer for the three-centre 2e, differentiated on the auxiliary index (Spherical)
+        subroutine cint3c2e_ip2_sph_optimizer(opt, atm, natm, bas, nbas, env) &
+                bind(C, name='cint3c2e_ip2_sph_optimizer')
+            import :: c_ptr, c_int, c_double
+            type(c_ptr), intent(out) :: opt
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+        end subroutine cint3c2e_ip2_sph_optimizer
+
+        ! Optimizer for the three-centre 2e, differentiated on the auxiliary index (Cartesian)
+        subroutine cint3c2e_ip2_cart_optimizer(opt, atm, natm, bas, nbas, env) &
+                bind(C, name='cint3c2e_ip2_cart_optimizer')
+            import :: c_ptr, c_int, c_double
+            type(c_ptr), intent(out) :: opt
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+        end subroutine cint3c2e_ip2_cart_optimizer
+
+        ! Optimizer for the two-centre 2e (the fitting metric), differentiated on the first index (Spherical)
+        subroutine cint2c2e_ip1_sph_optimizer(opt, atm, natm, bas, nbas, env) &
+                bind(C, name='cint2c2e_ip1_sph_optimizer')
+            import :: c_ptr, c_int, c_double
+            type(c_ptr), intent(out) :: opt
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+        end subroutine cint2c2e_ip1_sph_optimizer
+
+        ! Optimizer for the two-centre 2e (the fitting metric), differentiated on the first index (Cartesian)
+        subroutine cint2c2e_ip1_cart_optimizer(opt, atm, natm, bas, nbas, env) &
+                bind(C, name='cint2c2e_ip1_cart_optimizer')
+            import :: c_ptr, c_int, c_double
+            type(c_ptr), intent(out) :: opt
+            integer(c_int), intent(in) :: atm(*)
+            integer(c_int), value, intent(in) :: natm
+            integer(c_int), intent(in) :: bas(*)
+            integer(c_int), value, intent(in) :: nbas
+            real(c_double), intent(in) :: env(*)
+        end subroutine cint2c2e_ip1_cart_optimizer
 
     end interface
 

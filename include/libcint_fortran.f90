@@ -36,6 +36,8 @@ module libcint_fortran
     public :: libcint_1e_ipovlp_cart
     public :: libcint_1e_ovlp_sph, libcint_1e_kin_sph, libcint_1e_nuc_sph
     public :: libcint_1e_ipovlp_sph
+    public :: libcint_1e_ipkin_cart, libcint_1e_ipnuc_cart, libcint_1e_iprinv_cart
+    public :: libcint_1e_ipkin_sph, libcint_1e_ipnuc_sph, libcint_1e_iprinv_sph
     public :: libcint_1e_spnucsp
 
     ! Two-electron integrals
@@ -43,6 +45,9 @@ module libcint_fortran
     public :: libcint_3c2e_sph, libcint_2c2e_sph
     public :: libcint_3c2e_cart, libcint_2c2e_cart
     public :: libcint_2e_ip1_cart, libcint_2e_ip1_sph
+    public :: libcint_3c2e_ip1_cart, libcint_3c2e_ip1_sph
+    public :: libcint_3c2e_ip2_cart, libcint_3c2e_ip2_sph
+    public :: libcint_2c2e_ip1_cart, libcint_2c2e_ip1_sph
     public :: libcint_2e_spsp1
 
     ! Optimizers
@@ -51,6 +56,9 @@ module libcint_fortran
     public :: libcint_2c2e_cart_optimizer, libcint_2c2e_sph_optimizer
     public :: libcint_2e_ip1_cart_optimizer, libcint_2e_ip1_sph_optimizer
     public :: libcint_del_optimizer
+    public :: libcint_3c2e_ip1_cart_optimizer, libcint_3c2e_ip1_sph_optimizer
+    public :: libcint_3c2e_ip2_cart_optimizer, libcint_3c2e_ip2_sph_optimizer
+    public :: libcint_2c2e_ip1_cart_optimizer, libcint_2c2e_ip1_sph_optimizer
     public :: libcint_2e_spsp1_optimizer
 
     ! ========================================================================
@@ -594,5 +602,285 @@ contains
         call CINTdel_optimizer(opt)
         opt = c_null_ptr  ! Nullify to prevent use-after-free
     end subroutine libcint_del_optimizer
+
+    ! ========================================================================
+    ! Nuclear-derivative integrals, for analytic gradients
+    !
+    ! Three components per shell pair, differentiated with respect to the
+    ! coordinates of the first shell's centre. libcint generates only that one:
+    ! translational invariance gives the other centre's derivative, so a caller
+    ! forms it as minus the sum of the rest rather than integrating for it.
+    !
+    ! `libcint_1e_iprinv_*` is the odd one out and the reason a gradient needs
+    ! it: it differentiates with respect to the origin of the 1/|r-R| operator
+    ! rather than a basis-function centre, which is the Hellmann-Feynman
+    ! contribution from moving a nucleus. Set that origin first, in
+    ! env(LIBCINT_PTR_RINV_ORIG+1:LIBCINT_PTR_RINV_ORIG+3), and call it once per
+    ! nucleus.
+    ! ========================================================================
+
+    !> Gradient of the kinetic energy integral (Spherical basis)
+    function libcint_1e_ipkin_sph(buf, shls, atm, natm, bas, nbas, env) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(2)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        integer(ip) :: ret
+        ret = cint1e_ipkin_sph(buf, shls, atm, natm, bas, nbas, env)
+    end function libcint_1e_ipkin_sph
+
+    !> Gradient of the kinetic energy integral (Cartesian basis)
+    function libcint_1e_ipkin_cart(buf, shls, atm, natm, bas, nbas, env) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(2)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        integer(ip) :: ret
+        ret = cint1e_ipkin_cart(buf, shls, atm, natm, bas, nbas, env)
+    end function libcint_1e_ipkin_cart
+
+    !> Gradient of the nuclear attraction integral (Spherical basis)
+    function libcint_1e_ipnuc_sph(buf, shls, atm, natm, bas, nbas, env) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(2)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        integer(ip) :: ret
+        ret = cint1e_ipnuc_sph(buf, shls, atm, natm, bas, nbas, env)
+    end function libcint_1e_ipnuc_sph
+
+    !> Gradient of the nuclear attraction integral (Cartesian basis)
+    function libcint_1e_ipnuc_cart(buf, shls, atm, natm, bas, nbas, env) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(2)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        integer(ip) :: ret
+        ret = cint1e_ipnuc_cart(buf, shls, atm, natm, bas, nbas, env)
+    end function libcint_1e_ipnuc_cart
+
+    !> Gradient of the 1/|r-R| operator integral (Spherical basis)
+    function libcint_1e_iprinv_sph(buf, shls, atm, natm, bas, nbas, env) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(2)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        integer(ip) :: ret
+        ret = cint1e_iprinv_sph(buf, shls, atm, natm, bas, nbas, env)
+    end function libcint_1e_iprinv_sph
+
+    !> Gradient of the 1/|r-R| operator integral (Cartesian basis)
+    function libcint_1e_iprinv_cart(buf, shls, atm, natm, bas, nbas, env) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(2)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        integer(ip) :: ret
+        ret = cint1e_iprinv_cart(buf, shls, atm, natm, bas, nbas, env)
+    end function libcint_1e_iprinv_cart
+
+    !> Gradient of the three-centre 2e, differentiated on the first index (Spherical basis)
+    function libcint_3c2e_ip1_sph(buf, shls, atm, natm, bas, nbas, env, opt) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(4)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        type(c_ptr), intent(in), optional :: opt
+        integer(ip) :: ret
+
+        if (present(opt)) then
+            ret = cint3c2e_ip1_sph(buf, shls, atm, natm, bas, nbas, env, opt)
+        else
+            ret = cint3c2e_ip1_sph(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
+        end if
+    end function libcint_3c2e_ip1_sph
+
+    !> Gradient of the three-centre 2e, differentiated on the first index (Cartesian basis)
+    function libcint_3c2e_ip1_cart(buf, shls, atm, natm, bas, nbas, env, opt) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(4)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        type(c_ptr), intent(in), optional :: opt
+        integer(ip) :: ret
+
+        if (present(opt)) then
+            ret = cint3c2e_ip1_cart(buf, shls, atm, natm, bas, nbas, env, opt)
+        else
+            ret = cint3c2e_ip1_cart(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
+        end if
+    end function libcint_3c2e_ip1_cart
+
+    !> Gradient of the three-centre 2e, differentiated on the auxiliary index (Spherical basis)
+    function libcint_3c2e_ip2_sph(buf, shls, atm, natm, bas, nbas, env, opt) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(4)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        type(c_ptr), intent(in), optional :: opt
+        integer(ip) :: ret
+
+        if (present(opt)) then
+            ret = cint3c2e_ip2_sph(buf, shls, atm, natm, bas, nbas, env, opt)
+        else
+            ret = cint3c2e_ip2_sph(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
+        end if
+    end function libcint_3c2e_ip2_sph
+
+    !> Gradient of the three-centre 2e, differentiated on the auxiliary index (Cartesian basis)
+    function libcint_3c2e_ip2_cart(buf, shls, atm, natm, bas, nbas, env, opt) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(4)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        type(c_ptr), intent(in), optional :: opt
+        integer(ip) :: ret
+
+        if (present(opt)) then
+            ret = cint3c2e_ip2_cart(buf, shls, atm, natm, bas, nbas, env, opt)
+        else
+            ret = cint3c2e_ip2_cart(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
+        end if
+    end function libcint_3c2e_ip2_cart
+
+    !> Gradient of the two-centre 2e (the fitting metric), differentiated on the first index (Spherical basis)
+    function libcint_2c2e_ip1_sph(buf, shls, atm, natm, bas, nbas, env, opt) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(2)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        type(c_ptr), intent(in), optional :: opt
+        integer(ip) :: ret
+
+        if (present(opt)) then
+            ret = cint2c2e_ip1_sph(buf, shls, atm, natm, bas, nbas, env, opt)
+        else
+            ret = cint2c2e_ip1_sph(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
+        end if
+    end function libcint_2c2e_ip1_sph
+
+    !> Gradient of the two-centre 2e (the fitting metric), differentiated on the first index (Cartesian basis)
+    function libcint_2c2e_ip1_cart(buf, shls, atm, natm, bas, nbas, env, opt) result(ret)
+        real(dp), intent(out) :: buf(*)
+        integer(ip), intent(in) :: shls(2)
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+        type(c_ptr), intent(in), optional :: opt
+        integer(ip) :: ret
+
+        if (present(opt)) then
+            ret = cint2c2e_ip1_cart(buf, shls, atm, natm, bas, nbas, env, opt)
+        else
+            ret = cint2c2e_ip1_cart(buf, shls, atm, natm, bas, nbas, env, c_null_ptr)
+        end if
+    end function libcint_2c2e_ip1_cart
+
+    !> Create optimizer for the three-centre 2e, differentiated on the first index (Spherical basis)
+    subroutine libcint_3c2e_ip1_sph_optimizer(opt, atm, natm, bas, nbas, env)
+        type(c_ptr), intent(out) :: opt
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+
+        call cint3c2e_ip1_sph_optimizer(opt, atm, natm, bas, nbas, env)
+    end subroutine libcint_3c2e_ip1_sph_optimizer
+
+    !> Create optimizer for the three-centre 2e, differentiated on the first index (Cartesian basis)
+    subroutine libcint_3c2e_ip1_cart_optimizer(opt, atm, natm, bas, nbas, env)
+        type(c_ptr), intent(out) :: opt
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+
+        call cint3c2e_ip1_cart_optimizer(opt, atm, natm, bas, nbas, env)
+    end subroutine libcint_3c2e_ip1_cart_optimizer
+
+    !> Create optimizer for the three-centre 2e, differentiated on the auxiliary index (Spherical basis)
+    subroutine libcint_3c2e_ip2_sph_optimizer(opt, atm, natm, bas, nbas, env)
+        type(c_ptr), intent(out) :: opt
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+
+        call cint3c2e_ip2_sph_optimizer(opt, atm, natm, bas, nbas, env)
+    end subroutine libcint_3c2e_ip2_sph_optimizer
+
+    !> Create optimizer for the three-centre 2e, differentiated on the auxiliary index (Cartesian basis)
+    subroutine libcint_3c2e_ip2_cart_optimizer(opt, atm, natm, bas, nbas, env)
+        type(c_ptr), intent(out) :: opt
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+
+        call cint3c2e_ip2_cart_optimizer(opt, atm, natm, bas, nbas, env)
+    end subroutine libcint_3c2e_ip2_cart_optimizer
+
+    !> Create optimizer for the two-centre 2e (the fitting metric), differentiated on the first index (Spherical basis)
+    subroutine libcint_2c2e_ip1_sph_optimizer(opt, atm, natm, bas, nbas, env)
+        type(c_ptr), intent(out) :: opt
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+
+        call cint2c2e_ip1_sph_optimizer(opt, atm, natm, bas, nbas, env)
+    end subroutine libcint_2c2e_ip1_sph_optimizer
+
+    !> Create optimizer for the two-centre 2e (the fitting metric), differentiated on the first index (Cartesian basis)
+    subroutine libcint_2c2e_ip1_cart_optimizer(opt, atm, natm, bas, nbas, env)
+        type(c_ptr), intent(out) :: opt
+        integer(ip), intent(in) :: atm(LIBCINT_ATM_SLOTS, *)
+        integer(ip), intent(in) :: natm
+        integer(ip), intent(in) :: bas(LIBCINT_BAS_SLOTS, *)
+        integer(ip), intent(in) :: nbas
+        real(dp), intent(in) :: env(*)
+
+        call cint2c2e_ip1_cart_optimizer(opt, atm, natm, bas, nbas, env)
+    end subroutine libcint_2c2e_ip1_cart_optimizer
 
 end module libcint_fortran
